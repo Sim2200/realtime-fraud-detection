@@ -1,0 +1,55 @@
+{
+  "hardware": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz \u00b7 Darwin 26.6.2",
+  "threads": 1,
+  "budget": "p95 <= 10 ms per single transaction",
+  "torch": "2.2.2",
+  "rows": [
+    {
+      "artifact": "xgboost ONNX fp32",
+      "size_kb": 432.4,
+      "p50_ms": 0.029,
+      "p95_ms": 0.039,
+      "p99_ms": 0.07,
+      "pr_auc": 0.7944,
+      "meets_budget_p95_10ms": true
+    },
+    {
+      "artifact": "MLP ONNX fp32",
+      "size_kb": 17.2,
+      "p50_ms": 0.024,
+      "p95_ms": 0.044,
+      "p99_ms": 0.077,
+      "pr_auc": 0.7896,
+      "meets_budget_p95_10ms": true
+    },
+    {
+      "artifact": "MLP ONNX int8 (dynamic)",
+      "size_kb": 9.3,
+      "p50_ms": 0.032,
+      "p95_ms": 0.075,
+      "p99_ms": 0.13,
+      "pr_auc": 0.7853,
+      "meets_budget_p95_10ms": true
+    },
+    {
+      "artifact": "MLP Core ML (CPU_ONLY)",
+      "compute_units": "CPU_ONLY",
+      "size_kb": 12.4,
+      "p50_ms": 0.16,
+      "p95_ms": 0.221,
+      "p99_ms": 0.291,
+      "pr_auc_on_20k_sample": 0.795,
+      "onnx_fp32_pr_auc_same_sample": 0.798,
+      "meets_budget_p95_10ms": true
+    },
+    {
+      "artifact": "MLP Core ML (ALL)",
+      "compute_units": "ALL",
+      "size_kb": 12.4,
+      "p50_ms": 0.361,
+      "p95_ms": 1.193,
+      "p99_ms": 2.36,
+      "meets_budget_p95_10ms": true
+    }
+  ]
+}

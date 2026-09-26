@@ -1,0 +1,358 @@
+{
+  "reference": "training window",
+  "bins": "train deciles",
+  "thresholds": {
+    "stable": "<0.1",
+    "moderate": "0.1-0.25",
+    "significant": ">0.25"
+  },
+  "validation": {
+    "score_psi": 0.014,
+    "score_status": "stable",
+    "features_flagged": [
+      {
+        "feature": "V1",
+        "psi": 0.9266,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7819,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5394,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3213,
+        "status": "significant"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2107,
+        "status": "moderate"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2081,
+        "status": "moderate"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.1892,
+        "status": "moderate"
+      },
+      {
+        "feature": "V22",
+        "psi": 0.1837,
+        "status": "moderate"
+      },
+      {
+        "feature": "V5",
+        "psi": 0.1558,
+        "status": "moderate"
+      },
+      {
+        "feature": "V21",
+        "psi": 0.1236,
+        "status": "moderate"
+      },
+      {
+        "feature": "V24",
+        "psi": 0.1139,
+        "status": "moderate"
+      },
+      {
+        "feature": "V23",
+        "psi": 0.107,
+        "status": "moderate"
+      },
+      {
+        "feature": "V4",
+        "psi": 0.1041,
+        "status": "moderate"
+      },
+      {
+        "feature": "V26",
+        "psi": 0.1024,
+        "status": "moderate"
+      }
+    ],
+    "top_features": [
+      {
+        "feature": "V1",
+        "psi": 0.9266,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7819,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5394,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3213,
+        "status": "significant"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2107,
+        "status": "moderate"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2081,
+        "status": "moderate"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.1892,
+        "status": "moderate"
+      },
+      {
+        "feature": "V22",
+        "psi": 0.1837,
+        "status": "moderate"
+      }
+    ]
+  },
+  "test_first_half": {
+    "score_psi": 0.0277,
+    "score_status": "stable",
+    "features_flagged": [
+      {
+        "feature": "V1",
+        "psi": 1.0003,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7461,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5261,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3442,
+        "status": "significant"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2632,
+        "status": "significant"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2155,
+        "status": "moderate"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.1877,
+        "status": "moderate"
+      },
+      {
+        "feature": "V22",
+        "psi": 0.1591,
+        "status": "moderate"
+      },
+      {
+        "feature": "V5",
+        "psi": 0.1338,
+        "status": "moderate"
+      },
+      {
+        "feature": "V23",
+        "psi": 0.1337,
+        "status": "moderate"
+      },
+      {
+        "feature": "V24",
+        "psi": 0.1286,
+        "status": "moderate"
+      },
+      {
+        "feature": "V4",
+        "psi": 0.1236,
+        "status": "moderate"
+      },
+      {
+        "feature": "V26",
+        "psi": 0.1159,
+        "status": "moderate"
+      }
+    ],
+    "top_features": [
+      {
+        "feature": "V1",
+        "psi": 1.0003,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7461,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5261,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3442,
+        "status": "significant"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2632,
+        "status": "significant"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2155,
+        "status": "moderate"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.1877,
+        "status": "moderate"
+      },
+      {
+        "feature": "V22",
+        "psi": 0.1591,
+        "status": "moderate"
+      }
+    ]
+  },
+  "test_second_half": {
+    "score_psi": 0.0502,
+    "score_status": "stable",
+    "features_flagged": [
+      {
+        "feature": "V1",
+        "psi": 0.9965,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7641,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5294,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3374,
+        "status": "significant"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2898,
+        "status": "significant"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.247,
+        "status": "moderate"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2123,
+        "status": "moderate"
+      },
+      {
+        "feature": "V5",
+        "psi": 0.1916,
+        "status": "moderate"
+      },
+      {
+        "feature": "V22",
+        "psi": 0.1663,
+        "status": "moderate"
+      },
+      {
+        "feature": "V26",
+        "psi": 0.159,
+        "status": "moderate"
+      },
+      {
+        "feature": "V4",
+        "psi": 0.1531,
+        "status": "moderate"
+      },
+      {
+        "feature": "V24",
+        "psi": 0.1341,
+        "status": "moderate"
+      },
+      {
+        "feature": "V23",
+        "psi": 0.1327,
+        "status": "moderate"
+      },
+      {
+        "feature": "V21",
+        "psi": 0.1095,
+        "status": "moderate"
+      }
+    ],
+    "top_features": [
+      {
+        "feature": "V1",
+        "psi": 0.9965,
+        "status": "significant"
+      },
+      {
+        "feature": "V3",
+        "psi": 0.7641,
+        "status": "significant"
+      },
+      {
+        "feature": "V28",
+        "psi": 0.5294,
+        "status": "significant"
+      },
+      {
+        "feature": "V11",
+        "psi": 0.3374,
+        "status": "significant"
+      },
+      {
+        "feature": "V25",
+        "psi": 0.2898,
+        "status": "significant"
+      },
+      {
+        "feature": "V12",
+        "psi": 0.247,
+        "status": "moderate"
+      },
+      {
+        "feature": "V15",
+        "psi": 0.2123,
+        "status": "moderate"
+      },
+      {
+        "feature": "V5",
+        "psi": 0.1916,
+        "status": "moderate"
+      }
+    ]
+  }
+}
