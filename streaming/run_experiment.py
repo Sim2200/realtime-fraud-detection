@@ -64,8 +64,11 @@ def main() -> None:
     time.sleep(3)
     for t in ("transactions", "alerts"):
         sh(*topics, "--create", "--if-not-exists", "--topic", t, "--partitions", "4", "--replication-factor", "1", capture=True)
-    shutil.rmtree(OUT, ignore_errors=True)
-    OUT.mkdir(parents=True)
+    # Clear the sink's contents but keep the directory: it is bind-mounted into the
+    # Spark container, and deleting it would leave the container writing to a dead inode.
+    OUT.mkdir(parents=True, exist_ok=True)
+    for child in OUT.iterdir():
+        shutil.rmtree(child) if child.is_dir() else child.unlink()
 
     print(f"== submit Spark job (threshold raw={raw_thr:.4f})")
     job = sh(*COMPOSE, "exec", "-T", "spark", "/opt/spark/bin/spark-submit", "--master", "local[4]",

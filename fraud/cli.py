@@ -143,9 +143,9 @@ def stage_evaluate(a) -> None:
                    "test_curve": M.expected_cost_curve(s.y_test, cal_test, cost)["curve"][::8],
                    "test_cost_per_10k_at_threshold": round(next(r["cost_per_10k"] for r in M.expected_cost_curve(s.y_test, cal_test, cost, 400)["curve"]
                                                               if r["threshold"] >= thr_cost), 2)}
-    for label, thr in (("flag_nothing", 1.01), ("flag_everything", -0.01)):
-        pred_cost = M.expected_cost_curve(s.y_test, np.where(cal_test >= thr, 1.0, 0.0), cost, 2)["curve"]
-        out["cost"][label + "_cost_per_10k"] = pred_cost[0]["cost_per_10k"] if label == "flag_everything" else pred_cost[-1]["cost_per_10k"]
+    n_test = len(s.y_test)
+    out["cost"]["flag_nothing_cost_per_10k"] = round(int(s.y_test.sum()) * cost.missed_fraud_cost / n_test * 10_000, 2)
+    out["cost"]["flag_everything_cost_per_10k"] = round(cost.review_cost * 10_000, 2)
 
     # -- SHAP for the best model (tree explainer on a test sample)
     idx = np.random.default_rng(0).choice(len(s.x_test), size=min(2000, len(s.x_test)), replace=False)
@@ -287,7 +287,8 @@ def _plot_pr_curves(s, base, best_score, if_score, ae_score):
         p, r, _ = precision_recall_curve(s.y_test, sc)
         ax.plot(r, p, color=c, lw=2, label=f"{label}: PR-AUC {M.pr_auc(s.y_test, sc):.3f}")
     ax.set_xlabel("Recall"); ax.set_ylabel("Precision"); ax.set_title("Precision-recall on the test window", loc="left")
-    ax.legend(loc="upper right"); fig.savefig(FIG / "pr_curves.png", dpi=150, bbox_inches="tight"); plt.close(fig)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=1)
+    fig.savefig(FIG / "pr_curves.png", dpi=150, bbox_inches="tight"); plt.close(fig)
 
 
 def _plot_cost(curve, thr):
