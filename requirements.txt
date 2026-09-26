@@ -1,0 +1,24 @@
+# Python 3.11. torch 2.2.2 is the last release with Intel-macOS wheels and needs numpy < 2.
+numpy<2
+pandas<3
+scikit-learn>=1.6,<2
+torch==2.2.2
+xgboost>=2.1,<3
+lightgbm>=4.6,<5
+imbalanced-learn>=0.13
+opacus==1.4.1
+shap==0.45.1
+numba==0.59.1
+llvmlite==0.42.0
+onnx>=1.16
+onnxruntime>=1.19
+onnxmltools>=1.13
+skl2onnx>=1.17
+coremltools>=8; sys_platform == "darwin"
+matplotlib
+pyarrow
+duckdb
+joblib
+kafka-python-ng
+lz4
+pytest

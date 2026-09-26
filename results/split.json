@@ -1,0 +1,57 @@
+{
+  "dataset": "OpenML 1597 creditcard",
+  "sample_fraction": 1.0,
+  "features": [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount"
+  ],
+  "split": "time-ordered 70/10/20, no shuffling",
+  "train": {
+    "rows": 199364,
+    "frauds": 384,
+    "fraud_rate": 0.001926,
+    "seq_from": 0,
+    "seq_to": 199363
+  },
+  "val": {
+    "rows": 28481,
+    "frauds": 33,
+    "fraud_rate": 0.001159,
+    "seq_from": 199364,
+    "seq_to": 227844
+  },
+  "test": {
+    "rows": 56962,
+    "frauds": 75,
+    "fraud_rate": 0.001317,
+    "seq_from": 227845,
+    "seq_to": 284806
+  }
+}

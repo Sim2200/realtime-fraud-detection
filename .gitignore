@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+results/artifacts/*.joblib
+results/artifacts/*.npy
+.pytest_cache/
+.DS_Store
+results/log_*.txt
+streaming/out/
