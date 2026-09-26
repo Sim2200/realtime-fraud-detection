@@ -63,9 +63,17 @@ class CostModel:
     review_cost: float = 5.0           # analyst time per flagged transaction
 
 
-def expected_cost_curve(y: np.ndarray, score: np.ndarray, cost: CostModel, n_points: int = 400) -> dict:
-    """Expected cost per 10,000 transactions at each threshold, and the minimising threshold."""
-    thresholds = np.unique(np.quantile(score, np.linspace(0, 1, n_points)))
+def expected_cost_curve(y: np.ndarray, score: np.ndarray, cost: CostModel, n_points: int = 400,
+                        thresholds: np.ndarray | None = None) -> dict:
+    """Expected cost per 10,000 transactions at each threshold, and the minimising threshold.
+
+    Thresholds default to score quantiles plus a log-spaced grid, because calibrated
+    fraud probabilities sit near zero for almost every row and quantiles alone would
+    never sample the region where the decision actually changes.
+    """
+    if thresholds is None:
+        thresholds = np.unique(np.concatenate([np.quantile(score, np.linspace(0, 1, n_points)),
+                                               np.logspace(-6, 0, n_points)]))
     rows = []
     for t in thresholds:
         pred = score >= t

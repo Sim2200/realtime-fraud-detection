@@ -140,7 +140,7 @@ def stage_evaluate(a) -> None:
     thr_cost = cv["threshold"]
     out["cost"] = {"cost_model": cost.__dict__, "threshold_from_validation": round(thr_cost, 6),
                    "test_at_cost_threshold": M.precision_recall_f1(s.y_test, cal_test, thr_cost),
-                   "test_curve": M.expected_cost_curve(s.y_test, cal_test, cost)["curve"][::8],
+                   "test_curve": M.expected_cost_curve(s.y_test, cal_test, cost)["curve"][::4],
                    "test_cost_per_10k_at_threshold": round(next(r["cost_per_10k"] for r in M.expected_cost_curve(s.y_test, cal_test, cost, 400)["curve"]
                                                               if r["threshold"] >= thr_cost), 2)}
     n_test = len(s.y_test)
@@ -294,11 +294,13 @@ def _plot_pr_curves(s, base, best_score, if_score, ae_score):
 def _plot_cost(curve, thr):
     plt = _style()
     fig, ax = plt.subplots(figsize=(6.5, 4))
-    ax.plot([c["threshold"] for c in curve], [c["cost_per_10k"] for c in curve], color=COLORS[0], lw=2)
+    pts = [c for c in curve if c["threshold"] > 0]
+    ax.plot([c["threshold"] for c in pts], [c["cost_per_10k"] for c in pts], color=COLORS[0], lw=2)
     ax.axvline(thr, color=COLORS[1], lw=1.2, ls=(0, (4, 3)))
-    ax.annotate(f"chosen on validation: {thr:.3f}", (thr, max(c["cost_per_10k"] for c in curve)), xytext=(6, -12),
+    ax.annotate(f"chosen on validation: {thr:.2g}", (thr, max(c["cost_per_10k"] for c in pts)), xytext=(6, -12),
                 textcoords="offset points", fontsize=8, color="#52514e")
-    ax.set_xlabel("Score threshold"); ax.set_ylabel("Expected cost per 10,000 transactions ($)")
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlabel("Calibrated probability threshold (log)"); ax.set_ylabel("Expected cost per 10,000 transactions ($, log)")
     ax.set_title("Cost-based threshold (test window)", loc="left")
     fig.savefig(FIG / "cost_curve.png", dpi=150, bbox_inches="tight"); plt.close(fig)
 

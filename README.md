@@ -25,7 +25,7 @@ By **Simran Kharbanda**
 | **Problem** | Card fraud is 1 transaction in 580. A model that never flags anything is 99.83% accurate and useless. Real systems need: no leakage from the future, metrics on the positive class, a threshold tied to money, probabilities that mean something, detectors for fraud nobody has labelled yet, and scoring that fits a latency budget in a stream. |
 | **Data** | [OpenML 1597](https://www.openml.org/d/1597): 284,807 transactions by European cardholders over two days in September 2013, 492 frauds (0.172%). Public and **anonymised**: features V1–V28 are PCA components of confidential fields, plus Amount. Downloaded via the OpenML API, no login. |
 | **Time split** | Rows are in chronological order, so the first 70% train (199,364 rows, 384 frauds), the next 10% validate (28,481 / 33), the last 20% test (56,962 / 75). Nothing is shuffled; thresholds, calibration, early stopping and model selection use validation only. |
-| **Headline** | XGBoost with class weights (chosen on validation): test **PR-AUC 0.794**, ROC-AUC 0.979, **79% of frauds caught at a 0.1% false-positive rate**, 87% at 1%. The cost-based threshold cuts expected loss from **$2,633 to $824 per 10,000 transactions**. DP-SGD at ε = 1 keeps PR-AUC 0.69 (from 0.79). ONNX inference **p95 0.039 ms**, 250× inside a 10 ms budget. Streaming: {{STREAM_HEADLINE}}. |
+| **Headline** | XGBoost with class weights (chosen on validation): test **PR-AUC 0.794**, ROC-AUC 0.979, **79% of frauds caught at a 0.1% false-positive rate**, 87% at 1%. The cost-based threshold cuts expected loss from **$2,633 to $646 per 10,000 transactions**. DP-SGD at ε = 1 keeps PR-AUC 0.69 (from 0.79). ONNX inference **p95 0.039 ms**, 250× inside a 10 ms budget. Streaming: Spark sustains **2,315 events/s** on a laptop and reproduces the batch alerts exactly; at 2,000 events/s the micro-batch p95 is **4.6 s**. |
 | **Honesty notes** | The test window has only 75 frauds, so PR-AUC moves by ±0.03 across seeds (5-seed mean 0.775 ± 0.035). Rankings between the top models are within that noise. The dataset is small and two days long; drift numbers are day-to-day, not month-to-month. |
 
 ## Architecture
@@ -119,10 +119,12 @@ negative results are results.)
   decisions and money, raw scores for ranking.
 - **Cost model:** a missed fraud costs $200 (roughly the mean fraudulent amount plus chargeback
   handling), a manual review $5. The threshold minimising expected cost on validation is a
-  calibrated probability of **0.029**, far below 0.5, because a miss is 40× dearer than a review.
-  On test it flags 135 transactions (60 frauds, 75 false alarms): **recall 0.80, precision 0.44**,
-  expected cost **$824 per 10,000 transactions**, against $2,633 for flagging nothing and $50,000
-  for reviewing everything.
+  calibrated probability of **0.0007**, three orders of magnitude below 0.5, because a miss is
+  40× dearer than a review and calibrated fraud probabilities are tiny for almost every row.
+  On test it flags 136 transactions (60 frauds, 76 false alarms): **recall 0.80, precision 0.44**,
+  expected cost **$646 per 10,000 transactions**, against $2,633 for flagging nothing and $50,000
+  for reviewing everything. The curve is a staircase (isotonic calibration maps ranges of raw
+  scores to one value), flat between 0.0007 and 0.6, so the decision is robust to the exact cut.
 
 ![Cost curve](results/figures/cost_curve.png) ![Reliability](results/figures/reliability.png)
 
@@ -183,7 +185,23 @@ Spark job scores each micro-batch with a **pandas UDF over the broadcast ONNX mo
 scored event to a Parquet sink (with produce and score timestamps) and publishes events above the
 cost threshold to an `alerts` topic.
 
-{{STREAM_TABLE}}
+Two replays of the whole test window (56,962 transactions, 75 frauds), `results/streaming_paced.json`
+and `results/streaming_burst.json`. Latency is per event, produce time to score time.
+
+| Run | Producer → Kafka | Spark scoring throughput | Latency p50 / p95 / p99 | Alerts (tp / fp / fn) | Recall · precision |
+|---|---|---|---|---|---|
+| **Paced**, 2,000 events/s | 1,999.8 events/s, 28.5 s | all 56,962 scored 11.5 s after the producer stopped (1,423/s over the whole run) | **1.33 s / 4.63 s / 5.77 s** | 136 (60 / 76 / 15) | 0.80 · 0.44 |
+| **Burst**, unthrottled | 4,915 events/s, 11.6 s | **2,315 events/s** sustained, drained in 24.6 s | 3.01 s / 4.94 s / 5.34 s | 136 (60 / 76 / 15) | 0.80 · 0.44 |
+
+Two things to read from this. First, **the stream reproduces the batch decisions exactly**: the same
+136 alerts, 60 caught frauds and 15 misses as the offline cost-threshold analysis (section 4), which
+is the correctness check that matters for a scoring service. Second, the latency here is **Spark
+micro-batch latency, not model latency**: the model needs 0.04 ms per transaction; the 1-second
+trigger, Arrow serialisation of up-to-20,000-row batches and a single laptop running Kafka, Spark
+and the producer together make up the rest. On `local[4]` this pipeline sustains about 2,300
+events/s; past that, events queue in Kafka and latency grows with the backlog. More executors or
+smaller `maxOffsetsPerTrigger` batches would trade throughput for latency; the point is that the
+numbers are measured, not assumed.
 
 ### 9. Drift monitoring (PSI)
 

@@ -1,0 +1,29 @@
+{
+  "producer": {
+    "events_sent": 56962,
+    "seconds": 11.59,
+    "events_per_second": 4915.3,
+    "target_rate": 0.0,
+    "frauds_sent": 75
+  },
+  "events_scored": 56962,
+  "wall_seconds_produce_to_drained": 24.6,
+  "spark_throughput_events_per_second": 2314.9,
+  "latency_ms": {
+    "p50": 3009.0,
+    "p95": 4940.0,
+    "p99": 5339.0,
+    "max": 5447.0
+  },
+  "threshold_raw": 0.060070000000000005,
+  "threshold_calibrated": 0.000695,
+  "alerts": {
+    "count": 136,
+    "tp": 60,
+    "fp": 76,
+    "fn": 15,
+    "precision": 0.4412,
+    "recall": 0.8
+  },
+  "spark": "local[4], 1 s micro-batches, pandas UDF over a broadcast ONNX model"
+}
