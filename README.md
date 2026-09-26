@@ -30,6 +30,11 @@ By **Simran Kharbanda**
 
 ## Architecture
 
+![Architecture](results/figures/architecture.png)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart LR
     OML[OpenML 1597<br/>284,807 tx] -->|fraud/data.py| SPLIT[time split<br/>70 / 10 / 20]
@@ -50,6 +55,8 @@ flowchart LR
     CAL --> DRIFT[PSI on features + scores<br/>train vs later windows]
     CI[GitHub Actions<br/>pytest + 5% sample run] -.-> SUP
 ```
+
+</details>
 
 ## Results
 
