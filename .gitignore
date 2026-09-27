@@ -9,3 +9,4 @@ results/artifacts/*.npy
 .DS_Store
 results/log_*.txt
 streaming/out/
+results/artifacts/
