@@ -1,0 +1,165 @@
+{
+  "job": "projects/1039881788487/locations/us-central1/pipelineJobs/fraud-detector-lifecycle-20260927114811",
+  "state": "4",
+  "created": "2026-09-27 15:48:14.300337+00:00",
+  "started": "2026-09-27 15:49:30.806735+00:00",
+  "ended": "2026-09-27 16:40:28.646719+00:00",
+  "wall_seconds": 3134,
+  "dashboard": "https://console.cloud.google.com/vertex-ai/locations/us-central1/pipelines/runs/fraud-detector-lifecycle-20260927114811?project=1039881788487",
+  "tasks": [
+    {
+      "task": "fraud-detector-lifecycle-20260927114811",
+      "state": "SUCCEEDED",
+      "seconds": 3057.1,
+      "metrics": {}
+    },
+    {
+      "task": "ingest",
+      "state": "SUCCEEDED",
+      "seconds": 398.4,
+      "metrics": {
+        "test_frauds": 75.0,
+        "train_rows": 199364.0,
+        "test_fraud_rate": 0.001317,
+        "val_fraud_rate": 0.001159,
+        "val_frauds": 33.0,
+        "train_frauds": 384.0,
+        "train_fraud_rate": 0.001926,
+        "val_rows": 28481.0,
+        "test_rows": 56962.0
+      }
+    },
+    {
+      "task": "batch-predict",
+      "state": "SUCCEEDED",
+      "seconds": 1895.7,
+      "metrics": {
+        "output_dir": "gs://project-1adf2361-a5bc-4d4a-a7f-fraud/batch-predictions/prediction-fraud-detector-2026_09_27T09_09_14_960Z",
+        "rows_per_second_incl_startup": 30.8,
+        "rows": 56962.0,
+        "state": "4",
+        "wall_seconds": 1847.3
+      }
+    },
+    {
+      "task": "condition-2",
+      "state": "SUCCEEDED",
+      "seconds": 1804.7,
+      "metrics": {}
+    },
+    {
+      "task": "drift",
+      "state": "SUCCEEDED",
+      "seconds": 122.7,
+      "metrics": {
+        "psi_V28": 0.5265,
+        "max_psi": 0.9975,
+        "psi_V1": 0.9975,
+        "psi_V3": 0.7545,
+        "moderate_or_worse": 14.0,
+        "max_psi_feature": "V1",
+        "features": 29.0,
+        "psi_V11": 0.3397,
+        "psi_V25": 0.2757
+      }
+    },
+    {
+      "task": "validate",
+      "state": "SUCCEEDED",
+      "seconds": 184.5,
+      "metrics": {
+        "null_features": 0.0,
+        "problems": 0.0,
+        "fraud_rate": 0.001926,
+        "rows": 199364.0
+      }
+    },
+    {
+      "task": "smoke-test",
+      "state": "SUCCEEDED",
+      "seconds": 51.6,
+      "metrics": {
+        "latency_max_ms": 278.5,
+        "latency_p95_ms": 92.9,
+        "requests": 200.0,
+        "max_abs_score_diff_vs_local": 0.0,
+        "batch100_ms": 92.0,
+        "batch100_predictions": 100.0,
+        "latency_p50_ms": 68.1
+      }
+    },
+    {
+      "task": "register",
+      "state": "SUCCEEDED",
+      "seconds": 255.5,
+      "metrics": {}
+    },
+    {
+      "task": "evaluate",
+      "state": "SUCCEEDED",
+      "seconds": 123.2,
+      "metrics": {
+        "cost_per_10k": 599.52,
+        "champion_pr_auc": 0.0,
+        "fn": 25.0,
+        "fp": 1.0,
+        "flagged": 51.0,
+        "precision": 0.9804,
+        "threshold": 0.7182,
+        "gate_passed": 1.0,
+        "recall_at_fpr_1pct": 0.8933,
+        "cost_threshold": 0.005362,
+        "roc_auc": 0.9834,
+        "pr_auc": 0.8017,
+        "f1": 0.7937,
+        "tp": 50.0,
+        "recall": 0.6667,
+        "cost_missed": 9.0,
+        "cost_flagged": 323.0,
+        "recall_at_fpr_0.1pct": 0.7867
+      }
+    },
+    {
+      "task": "condition-1",
+      "state": "SUCCEEDED",
+      "seconds": 2153.1,
+      "metrics": {}
+    },
+    {
+      "task": "train",
+      "state": "SUCCEEDED",
+      "seconds": 194.5,
+      "metrics": {
+        "val_pr_auc": 0.8394,
+        "selected": "xgboost/none",
+        "threshold": 0.7181837558746338,
+        "fit_seconds_lightgbm_weights": 2.8,
+        "train_wall_seconds": 22.3,
+        "fit_seconds_xgboost_weights": 9.26,
+        "val_pr_auc_xgboost_weights": 0.8386,
+        "val_pr_auc_xgboost_none": 0.8394,
+        "fit_seconds_xgboost_none": 9.52,
+        "val_pr_auc_lightgbm_weights": 0.6957,
+        "strategy": "none",
+        "best_iteration": 150.0,
+        "n_train_rows": 199364.0,
+        "model": "xgboost"
+      }
+    },
+    {
+      "task": "deploy",
+      "state": "SUCCEEDED",
+      "seconds": 1751.7,
+      "metrics": {
+        "deploy_seconds": 1505.6,
+        "previous_versions_undeployed": 0.0
+      }
+    },
+    {
+      "task": "condition-3",
+      "state": "SUCCEEDED",
+      "seconds": 1896.5,
+      "metrics": {}
+    }
+  ]
+}

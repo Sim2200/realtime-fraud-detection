@@ -14,7 +14,8 @@ By **Simran Kharbanda**
 ![PyTorch](https://img.shields.io/badge/PyTorch-Opacus_DP--SGD-EE4C2C?logo=pytorch&logoColor=white)
 ![ONNX](https://img.shields.io/badge/ONNX-int8_%C2%B7_Core_ML-005CED?logo=onnx&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Kafka-Spark_Structured_Streaming-231F20?logo=apachekafka&logoColor=white)
-![Tests](https://img.shields.io/badge/pytest-16_passing-brightgreen)
+![Vertex AI](https://img.shields.io/badge/Vertex_AI-Pipelines_%C2%B7_Registry_%C2%B7_Endpoint-4285F4?logo=googlecloud&logoColor=white)
+![Tests](https://img.shields.io/badge/pytest-17_passing-brightgreen)
 
 | Precision-recall on the held-out time window | Privacy / utility trade-off |
 |---|---|
@@ -27,6 +28,7 @@ By **Simran Kharbanda**
 | **Time split** | Rows are in chronological order, so the first 70% train (199,364 rows, 384 frauds), the next 10% validate (28,481 / 33), the last 20% test (56,962 / 75). Nothing is shuffled; thresholds, calibration, early stopping and model selection use validation only. |
 | **Headline** | XGBoost with class weights (chosen on validation): test **PR-AUC 0.794**, ROC-AUC 0.979, **79% of frauds caught at a 0.1% false-positive rate**, 87% at 1%. The cost-based threshold cuts expected loss from **$2,633 to $646 per 10,000 transactions**. DP-SGD at ε = 1 keeps PR-AUC 0.69 (from 0.79). ONNX inference **p95 0.039 ms**, 250× inside a 10 ms budget. Streaming: Spark sustains **2,315 events/s** on a laptop and reproduces the batch alerts exactly; at 2,000 events/s the micro-batch p95 is **4.6 s**. |
 | **Honesty notes** | The test window has only 75 frauds, so PR-AUC moves by ±0.03 across seeds (5-seed mean 0.775 ± 0.035). Rankings between the top models are within that noise. The dataset is small and two days long; drift numbers are day-to-day, not month-to-month. |
+| **On Vertex AI** | The same lifecycle as a Vertex AI Pipeline: validate → train → evaluate with a promotion gate → Model Registry → endpoint → smoke test and batch prediction, plus drift and a weekly schedule. One measured run: test PR-AUC 0.802, endpoint p50 68 ms with remote scores identical to local, 56,962 rows batch-scored, 52 min wall (mostly Vertex provisioning), about $0.40 (section 10). |
 
 ## Architecture
 
@@ -226,6 +228,47 @@ moves: the model leans on features that stayed stable (V4, V14, V12 are not flag
 distinction a monitor has to make. Feature drift is a warning to investigate; score drift is the
 signal to act on. `results/drift.json` has the full report.
 
+### 10. The lifecycle on Vertex AI
+
+`vertex/pipeline.py` runs the model's lifecycle as a Vertex AI Pipeline (Kubeflow Pipelines v2), with
+every component executing in the project's own image (`vertex/Dockerfile`, built by Cloud Build) so
+the steps call `fraud.data`, `fraud.models`, `fraud.metrics` and `fraud.drift` rather than copies:
+
+```
+ingest → validate → train → evaluate ─(gate)→ register → deploy → smoke_test
+             └→ drift                          └→ batch_predict
+```
+
+The gate promotes a model only if its test PR-AUC clears a floor (0.75) and is not worse than the
+version already in the Model Registry (read back from a label on the newest version). `register`
+uploads it as a new version of one lineage, served by `vertex/serve.py`, a 78-line FastAPI app that
+implements Vertex's custom-container contract and is unit-tested. `deploy` puts the version on an
+endpoint with 100% traffic and undeploys older versions; `smoke_test` sends 200 online requests and
+checks the remote scores against the local model; `batch_predict` scores the whole test slice as a
+batch job. A weekly schedule (`make vertex-schedule`) reruns the pipeline; `make vertex-down` deletes
+the endpoint and the schedule. Measured run on 2026-09-27 (`results/vertex_run.json`):
+
+| Step | Wall time | What it recorded |
+|---|---|---|
+| ingest | 6.6 min | 199,364 / 28,481 / 56,962 rows, time-ordered split (mostly container start + Parquet from GCS) |
+| validate | 3.1 min | 0 nulls, fraud rate 0.19%, 0 problems |
+| train | 3.2 min (22 s of fitting) | xgboost/none chosen on val PR-AUC 0.839 (xgboost/weights 0.839, lightgbm 0.696) |
+| evaluate | 2.1 min | **test PR-AUC 0.802**, ROC-AUC 0.983, recall 0.79 at 0.1% FPR; gate passed (no champion yet) |
+| drift | 2.0 min | 14 of 29 features moderate or worse, V1 PSI 1.00 (same picture as section 9) |
+| register | 4.3 min | Model Registry `fraud-detector` v1, label `test_pr_auc=0_8017` |
+| deploy | 29 min | endpoint on n1-standard-2 (25 min of that is Vertex provisioning the custom container) |
+| smoke_test | 52 s | 200 online requests: **p50 68 ms, p95 93 ms**, max 279 ms; 100-row batch 92 ms; remote scores identical to local (max diff 0.0) |
+| batch_predict | 32 min | 56,962 rows scored, 31 rows/s including the job's own worker start-up |
+| whole run | 52 min | pipeline fee + about 1.4 machine-hours of e2-standard-4 and n1-standard-2: roughly $0.40 |
+
+Two honest notes. The pipeline's own steps are short (the model fits in 22 s); the wall clock is
+Vertex overhead: container pulls and Parquet reads from GCS per step, and above all endpoint and batch
+worker provisioning, which together account for an hour. That is the shape of managed MLOps: minutes
+of compute, tens of minutes of orchestration. And the endpoint's 68 ms p50 for a 29-feature tree model
+is network and serving overhead (the model itself scores in well under a millisecond, see section 7);
+for real-time scoring the streaming path in section 8 is the right shape, with the endpoint as the
+online-lookup fallback. The endpoint was deleted after the run; the registered model was kept.
+
 ## Engineering notes
 
 - **Reproducible:** `make all` regenerates every number; fixed seeds everywhere; `results/*.json` are
@@ -262,6 +305,9 @@ make onnx         # ONNX / int8 / Core ML   -> results/efficiency.json
 make drift        # PSI report              -> results/drift.json
 make all          # everything above (about 10 minutes)
 make stream-up && make stream && make stream-down   # Kafka + Spark (Docker), -> results/streaming.json
+make setup-vertex && make vertex-build GCP_PROJECT=<id>   # image via Cloud Build (Vertex AI + Cloud Build APIs enabled)
+make vertex-run GCP_PROJECT=<id>                    # the pipeline on Vertex AI -> results/vertex_run.json
+make vertex-schedule GCP_PROJECT=<id> / make vertex-down GCP_PROJECT=<id>
 ```
 
 ## Layout
@@ -269,7 +315,8 @@ make stream-up && make stream && make stream-down   # Kafka + Spark (Docker), ->
 ```
 fraud/           data.py (split) · metrics.py · models.py · anomaly.py · clustering.py · privacy.py · export.py · drift.py · cli.py
 streaming/       docker-compose.yml · spark.Dockerfile · jobs/score_stream.py · producer.py · run_experiment.py
-tests/           test_split.py · test_metrics.py · test_models.py
+vertex/          pipeline.py (KFP v2 components + run/schedule/teardown) · serve.py · Dockerfile · cloudbuild.yaml
+tests/           test_split.py · test_metrics.py · test_models.py · test_serve.py
 results/         every number in this README; figures/ for the charts; artifacts/ (models, git-ignored)
 ```
 

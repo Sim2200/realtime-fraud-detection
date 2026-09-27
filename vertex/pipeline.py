@@ -368,7 +368,7 @@ def schedule(project: str) -> None:
                                  enable_caching=False)
     s = job.create_schedule(display_name=SCHEDULE_NAME, cron="TZ=America/New_York 0 6 * * 1",
                             max_concurrent_run_count=1)
-    print("schedule", s.resource_name, "next run", s.next_run_time)
+    print("schedule", s.resource_name, "cron", s.cron)
 
 
 def teardown(project: str) -> None:
