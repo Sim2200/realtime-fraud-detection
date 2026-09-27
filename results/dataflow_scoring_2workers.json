@@ -1,0 +1,194 @@
+{
+  "job": {
+    "name": "fraud-scoring-20260927-181059",
+    "region": "us-central1",
+    "machine_type": "e2-standard-2",
+    "workers": 2,
+    "seconds_to_running": 26,
+    "seconds_to_first_scored_row": 208,
+    "wall_seconds": 400
+  },
+  "publisher": {
+    "events_sent": 56962,
+    "seconds": 28.58,
+    "events_per_second": 1993.3,
+    "target_rate": 2000.0,
+    "frauds_sent": 75
+  },
+  "events_scored": 56962,
+  "duplicates": 0,
+  "wall_seconds_publish_to_drained": 113.7,
+  "dataflow_throughput_events_per_second": 501.0,
+  "latency_ms_scored_minus_produced": {
+    "p50": 32301.6,
+    "p95": 81776.5,
+    "p99": 89027.4,
+    "max": 93839.8
+  },
+  "visible_lag_samples": [
+    {
+      "t": 0.8,
+      "scored": 0,
+      "visible_lag_s": null
+    },
+    {
+      "t": 6.4,
+      "scored": 0,
+      "visible_lag_s": null
+    },
+    {
+      "t": 12.7,
+      "scored": 444,
+      "visible_lag_s": 6.6
+    },
+    {
+      "t": 18.8,
+      "scored": 2629,
+      "visible_lag_s": 10.9
+    },
+    {
+      "t": 24.6,
+      "scored": 5455,
+      "visible_lag_s": 8.7
+    },
+    {
+      "t": 30.6,
+      "scored": 8414,
+      "visible_lag_s": 14.7
+    },
+    {
+      "t": 36.3,
+      "scored": 10107,
+      "visible_lag_s": 10.6
+    },
+    {
+      "t": 42.2,
+      "scored": 11227,
+      "visible_lag_s": 12.9
+    },
+    {
+      "t": 48.3,
+      "scored": 13798,
+      "visible_lag_s": 15.4
+    },
+    {
+      "t": 54.3,
+      "scored": 16569,
+      "visible_lag_s": 21.5
+    },
+    {
+      "t": 60.3,
+      "scored": 21890,
+      "visible_lag_s": 27.2
+    },
+    {
+      "t": 66.4,
+      "scored": 25811,
+      "visible_lag_s": 33.2
+    },
+    {
+      "t": 72.2,
+      "scored": 31157,
+      "visible_lag_s": 39.1
+    },
+    {
+      "t": 78.0,
+      "scored": 37071,
+      "visible_lag_s": 44.9
+    },
+    {
+      "t": 84.2,
+      "scored": 41627,
+      "visible_lag_s": 51.1
+    },
+    {
+      "t": 90.0,
+      "scored": 45524,
+      "visible_lag_s": 56.8
+    },
+    {
+      "t": 96.1,
+      "scored": 47741,
+      "visible_lag_s": 63.0
+    },
+    {
+      "t": 102.0,
+      "scored": 49671,
+      "visible_lag_s": 68.9
+    },
+    {
+      "t": 107.9,
+      "scored": 53226,
+      "visible_lag_s": 74.7
+    },
+    {
+      "t": 113.7,
+      "scored": 56962,
+      "visible_lag_s": 80.6
+    }
+  ],
+  "threshold_raw": 0.060070000000000005,
+  "agreement_with_local_onnx": {
+    "max_abs_score_diff": 0.0001283884048461914,
+    "alerts_identical": true
+  },
+  "alerts": {
+    "count": 136,
+    "tp": 60,
+    "fp": 76,
+    "fn": 15,
+    "precision": 0.4412,
+    "recall": 0.8
+  },
+  "score_windows": [
+    {
+      "window_start": "2026-09-27T18:13:00+00:00",
+      "window_end": "2026-09-27T18:14:00+00:00",
+      "events": 64,
+      "alerts": 0,
+      "mean_score": 0.000104,
+      "score_psi": 0.119638,
+      "emitted_at": "2026-09-27T18:15:08.929102+00:00"
+    },
+    {
+      "window_start": "2026-09-27T18:14:00+00:00",
+      "window_end": "2026-09-27T18:15:00+00:00",
+      "events": 343,
+      "alerts": 0,
+      "mean_score": 0.000434,
+      "score_psi": 0.027527,
+      "emitted_at": "2026-09-27T18:16:03.304258+00:00"
+    },
+    {
+      "window_start": "2026-09-27T18:15:00+00:00",
+      "window_end": "2026-09-27T18:16:00+00:00",
+      "events": 53747,
+      "alerts": 127,
+      "mean_score": 0.001695,
+      "score_psi": 0.007282,
+      "emitted_at": "2026-09-27T18:17:38.188358+00:00"
+    },
+    {
+      "window_start": "2026-09-27T18:16:00+00:00",
+      "window_end": "2026-09-27T18:17:00+00:00",
+      "events": 3217,
+      "alerts": 9,
+      "mean_score": 0.001357,
+      "score_psi": 0.024756,
+      "emitted_at": "2026-09-27T18:17:38.188722+00:00"
+    }
+  ],
+  "dataflow_metrics": {
+    "TotalVcpuTime": 1321,
+    "TotalMemoryUsage": 5412179,
+    "TotalStreamingDataProcessed": 0.11242935713380575,
+    "CurrentVcpuCount": 4
+  },
+  "cost_estimate_usd": {
+    "vcpu_hours": 0.367,
+    "memory_gb_hours": 1.468,
+    "streaming_data_gb": 0.0,
+    "total": 0.0305,
+    "note": "Dataflow list prices, us-central1; Pub/Sub and BigQuery streaming inserts are cents at this volume"
+  }
+}

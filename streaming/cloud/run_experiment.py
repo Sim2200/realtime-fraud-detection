@@ -109,7 +109,7 @@ def main() -> None:
 
     print("2. launch Dataflow job", name, f"(threshold raw {thr:.5f})")
     req = Path("/tmp/fraud_beam_requirements.txt")
-    req.write_text("onnxruntime==1.20.1\nnumpy<2\n")
+    req.write_text("onnxruntime==1.20.1\n")   # workers install it from PyPI (requirements_cache=skip)
     t_launch = time.time()
     sh(PY, "streaming/cloud/score_stream_beam.py",
        "--subscription", f"projects/{P}/subscriptions/transactions-beam", "--model_uri", f"gs://{bucket_data}/model/best_tree.onnx",
@@ -117,7 +117,7 @@ def main() -> None:
        "--threshold", str(thr), "--scores_table", scores_t.replace(".", ":", 1), "--windows_table", windows_t.replace(".", ":", 1),
        "--runner", "DataflowRunner", "--project", P, "--region", REGION, "--job_name", name,
        "--temp_location", f"gs://{bucket_df}/tmp", "--staging_location", f"gs://{bucket_df}/staging",
-       "--requirements_file", str(req), "--machine_type", a.machine_type, "--num_workers", str(a.workers),
+       "--requirements_file", str(req), "--requirements_cache", "skip", "--machine_type", a.machine_type, "--num_workers", str(a.workers),
        "--max_num_workers", str(a.max_workers), "--enable_streaming_engine", "--experiments", "use_runner_v2")
     while True:
         j = active_job(P, name)
@@ -166,12 +166,29 @@ def main() -> None:
     drain_seconds = time.time() - t0
     publisher = json.loads(Path("results/pubsub_publish.json").read_text())
 
+    # Snapshot the scored rows now: the tail below re-sends the first event ids to move the watermark.
+    rows = list(client.query(f"SELECT event_id, score, is_alert, label, produced_at, scored_at FROM `{scores_t}`").result())
+
+    # Event-time windows only close once the watermark passes them, so keep a 1 event/s tail
+    # flowing (from the end of the test window) until the replay's minutes have been emitted.
+    print("   tail: 1 event/s until the score windows land")
+    first_minute = datetime.fromisoformat(publisher["started_at"].replace("Z", "+00:00")).replace(second=0, microsecond=0) \
+        if "started_at" in publisher else None
+    tail = subprocess.Popen([PY, "streaming/cloud/publish.py", "--project", P, "--rate", "1", "--seconds", "240",
+                             "--limit", "240"], stdout=subprocess.DEVNULL)
+    t_tail = time.time()
+    while time.time() - t_tail < 200:
+        n_win = list(client.query(f"SELECT count(*) n, max(window_end) last FROM `{windows_t}`").result())[0]
+        if n_win.last and n_win.last >= datetime.now(timezone.utc).replace(second=0, microsecond=0):
+            break
+        time.sleep(10)
+    tail.terminate()
+
     print("5. cancel, metrics, compare")
     j = active_job(P, name)
     totals = job_metrics(P, j["id"]) if j else {}
     if j:
         sh("gcloud", "dataflow", "jobs", "cancel", j["id"], "--project", P, "--region", REGION, check=False, capture=True)
-    rows = list(client.query(f"SELECT event_id, score, is_alert, label, produced_at, scored_at FROM `{scores_t}`").result())
     ids = np.array([r.event_id for r in rows])
     remote = np.array([r.score for r in rows])
     lat = np.array([(r.scored_at - r.produced_at).total_seconds() * 1000 for r in rows])

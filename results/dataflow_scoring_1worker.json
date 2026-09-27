@@ -1,0 +1,167 @@
+{
+  "job": {
+    "name": "fraud-scoring-20260927-180422",
+    "region": "us-central1",
+    "machine_type": "e2-standard-2",
+    "workers": 1,
+    "seconds_to_running": 27,
+    "seconds_to_first_scored_row": 140,
+    "wall_seconds": 299
+  },
+  "publisher": {
+    "events_sent": 56962,
+    "seconds": 28.64,
+    "events_per_second": 1988.8,
+    "target_rate": 2000.0,
+    "frauds_sent": 75
+  },
+  "events_scored": 56962,
+  "duplicates": 0,
+  "wall_seconds_publish_to_drained": 113.6,
+  "dataflow_throughput_events_per_second": 501.3,
+  "latency_ms_scored_minus_produced": {
+    "p50": 36700.5,
+    "p95": 69137.6,
+    "p99": 76624.4,
+    "max": 86203.5
+  },
+  "visible_lag_samples": [
+    {
+      "t": 0.9,
+      "scored": 0,
+      "visible_lag_s": null
+    },
+    {
+      "t": 6.8,
+      "scored": 0,
+      "visible_lag_s": null
+    },
+    {
+      "t": 12.6,
+      "scored": 56,
+      "visible_lag_s": 3.9
+    },
+    {
+      "t": 18.4,
+      "scored": 2993,
+      "visible_lag_s": 9.3
+    },
+    {
+      "t": 24.3,
+      "scored": 5491,
+      "visible_lag_s": 6.9
+    },
+    {
+      "t": 30.4,
+      "scored": 7679,
+      "visible_lag_s": 13.1
+    },
+    {
+      "t": 36.6,
+      "scored": 9714,
+      "visible_lag_s": 11.4
+    },
+    {
+      "t": 42.5,
+      "scored": 12590,
+      "visible_lag_s": 15.8
+    },
+    {
+      "t": 48.3,
+      "scored": 14501,
+      "visible_lag_s": 20.1
+    },
+    {
+      "t": 54.3,
+      "scored": 15934,
+      "visible_lag_s": 20.4
+    },
+    {
+      "t": 60.2,
+      "scored": 21689,
+      "visible_lag_s": 26.2
+    },
+    {
+      "t": 66.1,
+      "scored": 26673,
+      "visible_lag_s": 32.1
+    },
+    {
+      "t": 72.0,
+      "scored": 31129,
+      "visible_lag_s": 38.0
+    },
+    {
+      "t": 77.9,
+      "scored": 37240,
+      "visible_lag_s": 43.9
+    },
+    {
+      "t": 83.7,
+      "scored": 41984,
+      "visible_lag_s": 49.8
+    },
+    {
+      "t": 89.7,
+      "scored": 43680,
+      "visible_lag_s": 55.7
+    },
+    {
+      "t": 95.5,
+      "scored": 46914,
+      "visible_lag_s": 61.6
+    },
+    {
+      "t": 101.6,
+      "scored": 50312,
+      "visible_lag_s": 67.6
+    },
+    {
+      "t": 107.6,
+      "scored": 54572,
+      "visible_lag_s": 73.7
+    },
+    {
+      "t": 113.6,
+      "scored": 56962,
+      "visible_lag_s": 79.7
+    }
+  ],
+  "threshold_raw": 0.060070000000000005,
+  "agreement_with_local_onnx": {
+    "max_abs_score_diff": 0.0001283884048461914,
+    "alerts_identical": true
+  },
+  "alerts": {
+    "count": 136,
+    "tp": 60,
+    "fp": 76,
+    "fn": 15,
+    "precision": 0.4412,
+    "recall": 0.8
+  },
+  "score_windows": [
+    {
+      "window_start": "2026-09-27T18:06:00+00:00",
+      "window_end": "2026-09-27T18:07:00+00:00",
+      "events": 64,
+      "alerts": 0,
+      "mean_score": 0.000753,
+      "score_psi": 0.034199,
+      "emitted_at": "2026-09-27T18:08:01.455629+00:00"
+    }
+  ],
+  "dataflow_metrics": {
+    "TotalVcpuTime": 480,
+    "TotalMemoryUsage": 1968145,
+    "TotalStreamingDataProcessed": 0.10678109806030989,
+    "CurrentVcpuCount": 2
+  },
+  "cost_estimate_usd": {
+    "vcpu_hours": 0.133,
+    "memory_gb_hours": 0.534,
+    "streaming_data_gb": 0.0,
+    "total": 0.0111,
+    "note": "Dataflow list prices, us-central1; Pub/Sub and BigQuery streaming inserts are cents at this volume"
+  }
+}

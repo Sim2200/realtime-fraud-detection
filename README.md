@@ -14,6 +14,7 @@ By **Simran Kharbanda**
 ![PyTorch](https://img.shields.io/badge/PyTorch-Opacus_DP--SGD-EE4C2C?logo=pytorch&logoColor=white)
 ![ONNX](https://img.shields.io/badge/ONNX-int8_%C2%B7_Core_ML-005CED?logo=onnx&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Kafka-Spark_Structured_Streaming-231F20?logo=apachekafka&logoColor=white)
+![Dataflow](https://img.shields.io/badge/Pub%2FSub-Dataflow_%C2%B7_BigQuery-4285F4?logo=googlecloud&logoColor=white)
 ![Vertex AI](https://img.shields.io/badge/Vertex_AI-Pipelines_%C2%B7_Registry_%C2%B7_Endpoint-4285F4?logo=googlecloud&logoColor=white)
 ![Tests](https://img.shields.io/badge/pytest-17_passing-brightgreen)
 
@@ -29,6 +30,7 @@ By **Simran Kharbanda**
 | **Headline** | XGBoost with class weights (chosen on validation): test **PR-AUC 0.794**, ROC-AUC 0.979, **79% of frauds caught at a 0.1% false-positive rate**, 87% at 1%. The cost-based threshold cuts expected loss from **$2,633 to $646 per 10,000 transactions**. DP-SGD at ε = 1 keeps PR-AUC 0.69 (from 0.79). ONNX inference **p95 0.039 ms**, 250× inside a 10 ms budget. Streaming: Spark sustains **2,315 events/s** on a laptop and reproduces the batch alerts exactly; at 2,000 events/s the micro-batch p95 is **4.6 s**. |
 | **Honesty notes** | The test window has only 75 frauds, so PR-AUC moves by ±0.03 across seeds (5-seed mean 0.775 ± 0.035). Rankings between the top models are within that noise. The dataset is small and two days long; drift numbers are day-to-day, not month-to-month. |
 | **On Vertex AI** | The same lifecycle as a Vertex AI Pipeline: validate → train → evaluate with a promotion gate → Model Registry → endpoint → smoke test and batch prediction, plus drift and a weekly schedule. One measured run: test PR-AUC 0.802, endpoint p50 68 ms with remote scores identical to local, 56,962 rows batch-scored, 52 min wall (mostly Vertex provisioning), about $0.40 (section 10). |
+| **On Dataflow** | Real-time scoring on Google Cloud: Pub/Sub → Dataflow (Beam, onnxruntime) → BigQuery, with one-minute score-PSI windows as an online drift monitor. Alerts identical to the batch evaluation (136); 501 events/s on 1 or 2 small workers, so the streaming-insert sink is the limit (section 11). |
 
 ## Architecture
 
@@ -269,6 +271,46 @@ is network and serving overhead (the model itself scores in well under a millise
 for real-time scoring the streaming path in section 8 is the right shape, with the endpoint as the
 online-lookup fallback. The endpoint was deleted after the run; the registered model was kept.
 
+### 11. Real-time scoring on Google Cloud: Pub/Sub → Dataflow → BigQuery
+
+`streaming/cloud/` is the managed twin of section 8: `publish.py` replays the test window into a
+Pub/Sub topic with the same event JSON, `score_stream_beam.py` is the Spark job rewritten as an
+Apache Beam pipeline (one onnxruntime session per worker process, loaded from GCS, scoring batches of
+up to 2,000 events) run on Dataflow, and every scored event streams into BigQuery `fraud.scores`.
+A second branch keeps one-minute event-time windows and writes `fraud.score_windows` with the
+events, alerts, mean score and the **PSI of the window's score distribution against the validation
+reference**, so the drift monitor of section 9 runs online. `run_experiment.py` launches the job,
+waits until a warm-up event is scored and queryable, replays at 2,000 events/s, polls BigQuery until
+every event is visible, then pulls every row back and compares it with local onnxruntime on the same
+rows. Measured on 2026-09-27 (`results/dataflow_scoring_{1worker,2workers}.json`):
+
+| | Kafka → Spark (laptop, `local[4]`) | Pub/Sub → Dataflow, 1 × e2-standard-2 | 2 × e2-standard-2 |
+|---|---|---|---|
+| Events scored | 56,962 | 56,962 (0 duplicates) | 56,962 (0 duplicates) |
+| Alerts (tp / fp / fn) | 136 (60 / 76 / 15) | **136 (60 / 76 / 15), identical** | identical |
+| Max score difference vs local model | 0 (same file) | 1.3 × 10⁻⁴ (features rounded to 6 dp in JSON) | 1.3 × 10⁻⁴ |
+| Sustained scoring rate | 1,423 events/s | 501 events/s | 501 events/s |
+| Publish → scored, p50 / p95 | 1.3 / 4.6 s | 36.7 / 69.1 s | 32.3 / 81.8 s |
+| Submit → RUNNING → first scored row | ~5 s | 27 s → 140 s | 26 s → 208 s |
+| Cost of the run | – | $0.01 | $0.03 |
+| Score windows (2-worker run) | – | – | 18:15 → 53,747 events, 127 alerts, **PSI 0.007**; 18:16 → 3,217 events, 9 alerts, PSI 0.025 |
+
+Reading the numbers. Correctness carried over completely: the cloud job flags exactly the 136
+transactions the batch evaluation and the Spark job flag, and the windowed alert counts sum to the
+same 136. Throughput did not: Dataflow drained the 29-second burst at 501 events/s, and adding a
+second worker changed nothing, which says the limit is not the scoring DoFn (one 2-vCPU worker scores
+the model at thousands of rows per second; the Spark job does 1,423/s on 4 laptop cores). What was
+identical between the runs is the single Pub/Sub source stage and the BigQuery streaming-insert sink,
+whose Python implementation posts small batches synchronously from each bundle; the visible lag grew
+linearly through the drain (10 s → 80 s) as that sink fell behind. The fix is known and is the next
+step: the Storage Write API sink (`STORAGE_WRITE_API`) or writing the scores to Pub/Sub and letting a
+BigQuery subscription land them, either of which takes the write off the worker's critical path. As
+in the warehouse project's Dataflow experiment, startup is the other cost: 2–3 minutes from RUNNING to
+the first scored row, spent installing onnxruntime on the worker and waiting for the Python harness.
+For latency-critical scoring the Spark path in section 8 or the Vertex endpoint in section 10 are the
+right shapes; this pipeline's strength is that the drift monitor and the scores land in the warehouse
+with no extra moving parts.
+
 ## Engineering notes
 
 - **Reproducible:** `make all` regenerates every number; fixed seeds everywhere; `results/*.json` are
@@ -308,6 +350,7 @@ make stream-up && make stream && make stream-down   # Kafka + Spark (Docker), ->
 make setup-vertex && make vertex-build GCP_PROJECT=<id>   # image via Cloud Build (Vertex AI + Cloud Build APIs enabled)
 make vertex-run GCP_PROJECT=<id>                    # the pipeline on Vertex AI -> results/vertex_run.json
 make vertex-schedule GCP_PROJECT=<id> / make vertex-down GCP_PROJECT=<id>
+make cloud-stream-up GCP_PROJECT=<id> && make cloud-stream GCP_PROJECT=<id> && make cloud-stream-down GCP_PROJECT=<id>
 ```
 
 ## Layout
@@ -315,6 +358,7 @@ make vertex-schedule GCP_PROJECT=<id> / make vertex-down GCP_PROJECT=<id>
 ```
 fraud/           data.py (split) · metrics.py · models.py · anomaly.py · clustering.py · privacy.py · export.py · drift.py · cli.py
 streaming/       docker-compose.yml · spark.Dockerfile · jobs/score_stream.py · producer.py · run_experiment.py
+streaming/cloud/ publish.py (Pub/Sub) · score_stream_beam.py (Dataflow) · run_experiment.py
 vertex/          pipeline.py (KFP v2 components + run/schedule/teardown) · serve.py · Dockerfile · cloudbuild.yaml
 tests/           test_split.py · test_metrics.py · test_models.py · test_serve.py
 results/         every number in this README; figures/ for the charts; artifacts/ (models, git-ignored)
