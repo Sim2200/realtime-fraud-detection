@@ -59,7 +59,7 @@ setup-vertex:
 
 # Build and push Vertex AI container image
 vertex-build:
-	gcloud builds submit --config vertex/cloudbuild.yaml --project $(GCP_PROJECT) .
+	gcloud builds submit --config vertex/cloudbuild.yaml --project $(GCP_PROJECT) --substitutions=_IMAGE=us-central1-docker.pkg.dev/$(GCP_PROJECT)/fraud/pipeline:v1 .
 
 # Run Vertex AI pipeline
 vertex-run:
