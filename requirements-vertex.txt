@@ -14,3 +14,4 @@ google-cloud-storage
 gcsfs
 fsspec
 cryptography<46  # newer versions need a Rust toolchain on Intel macOS
+apache-beam[gcp]>=2.60,<3

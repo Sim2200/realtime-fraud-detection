@@ -46,6 +46,23 @@ stream:
 stream-down:
 	docker compose -f streaming/docker-compose.yml down -v
 
+# Set up Pub/Sub topic, subscription, and copy model to GCS
+cloud-stream-up:
+	gcloud pubsub topics create transactions --project $(GCP_PROJECT) || true
+	gcloud pubsub subscriptions create transactions-beam --topic transactions --project $(GCP_PROJECT) --ack-deadline 60 || true
+	gcloud storage cp results/artifacts/best_tree.onnx gs://$(GCP_PROJECT)-fraud/model/best_tree.onnx
+	bq --project_id $(GCP_PROJECT) mk --dataset --location US fraud || true
+
+# Run cloud streaming experiment
+cloud-stream:
+	$(VPY) streaming/cloud/run_experiment.py --project $(GCP_PROJECT) --rate 2000 --seconds 120
+
+# Cancel Dataflow jobs and tear down Pub/Sub topic and subscription
+cloud-stream-down:
+	-gcloud dataflow jobs list --project $(GCP_PROJECT) --region us-central1 --status=active --format='value(id)' | xargs -n1 -I{} gcloud dataflow jobs cancel {} --project $(GCP_PROJECT) --region us-central1
+	-gcloud pubsub subscriptions delete transactions-beam --project $(GCP_PROJECT) --quiet
+	-gcloud pubsub topics delete transactions --project $(GCP_PROJECT) --quiet
+
 # Run all pipeline stages
 all: data train evaluate privacy onnx drift
 
