@@ -1,4 +1,5 @@
 .venv/
+.venv-vertex/
 __pycache__/
 *.pyc
 data/

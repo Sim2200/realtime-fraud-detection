@@ -9,6 +9,10 @@ Two rules for the OpenMP runtimes on macOS, learned the hard way:
 
 import lightgbm  # noqa: F401  (must precede torch, see above)
 import xgboost  # noqa: F401
-import torch
 
-torch.set_num_threads(1)
+try:  # torch is optional: the Vertex AI pipeline/serving image ships only the tree models
+    import torch
+
+    torch.set_num_threads(1)
+except ImportError:  # pragma: no cover
+    pass

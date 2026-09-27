@@ -1,0 +1,31 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - vertex/Dockerfile
+      - -t
+      - ${_IMAGE}
+      - .
+    images:
+      - ${_IMAGE}
+
+  - name: ${_IMAGE}
+    entrypoint: /bin/sh
+    args:
+      - -c
+      - |
+        python vertex/pipeline.py compile --out /workspace/pipeline.json
+
+  - name: gcr.io/cloud-builders/gsutil
+    args:
+      - cp
+      - /workspace/pipeline.json
+      - gs://${PROJECT_ID}-fraud/pipeline/pipeline.json
+
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/fraud/pipeline:v1
+
+timeout: 1800s
+options:
+  machineType: E2_HIGHCPU_8
